@@ -1,0 +1,128 @@
+
+import "core"
+import "std/fileio"
+
+fn html_attr(e FExpr) FExpr $[compiletime] {
+  if (kind(e) == FEXPR_SEQ && length(e) == 3 && to_cs(e!0) == "=") {
+    idlit := new_fstrlit(to_cs(e!1))
+    sexpr := e!2
+    quote {
+      s `idlit & s"='" & string(`sexpr) & s"'"
+    }
+  } elif (kind(e) == FEXPR_IDENT) {
+    new_fstrlit(to_cs(e))
+  } else {
+    error(e, "attr syntax expected, example: src='...'")
+    quote {}
+  }
+}
+
+fn html_attrs(fexpr FList) FExpr $[compiletime] {
+  tmp := gensym()
+  ret := quote {
+    `tmp := s""
+  }
+  for (e : fexpr) {
+    attr := html_attr(e)
+    push(ret, quote {
+        push(`tmp, `attr)
+      })
+  }
+  push(ret, tmp)
+  ret
+}
+
+macro define_html_tag(tagname FIdent) FExpr {
+  bodytmp := gensym()
+  taglit := new_fstrlit(to_cs(tagname))
+  quote {
+    macro `tagname(body FBlock) FExpr {
+      tmp := gensym()
+      ret := quote {
+        ``tmp := s"<"
+        push(``tmp, `taglit)
+        push(``tmp, ">")
+      }
+      for (b : body) {
+        push(ret, quote {
+            push(``tmp, ``b)
+          })
+      }
+      push(ret, quote {
+          push(``tmp, "</")
+          push(``tmp, `taglit)
+          push(``tmp, ">")
+        })
+      push(ret, tmp)
+      ret
+    }
+    macro `tagname(attrlist FList, body FBlock) FExpr {
+      attrs := html_attrs(attrlist)
+      tmp := gensym()
+      ret := quote {
+        ``tmp := s"<"
+        push(``tmp, `taglit)
+        push(``tmp, " ")
+        push(``tmp, ``attrs)
+        push(``tmp, ">")
+      }
+      for (b : body) {
+        push(ret, quote {
+            push(``tmp, ``b)
+          })
+      }
+      push(ret, quote {
+          push(``tmp, "</")
+          push(``tmp, `taglit)
+          push(``tmp, ">")
+        })
+      push(ret, tmp)
+      ret
+    }
+  }
+}
+
+define_html_tag(html)
+define_html_tag(head)
+define_html_tag(body)
+define_html_tag(div)
+define_html_tag(span)
+define_html_tag(p)
+define_html_tag(ul)
+define_html_tag(li)
+define_html_tag(a)
+define_html_tag(strong)
+define_html_tag(h1)
+define_html_tag(h2)
+define_html_tag(h3)
+
+fn title(t String) String {
+  ret := s"<title>"
+  push(ret, t)
+  push(ret, "</title>")
+  ret
+}
+fn meta(charset CString) String {
+  ret := s"<meta charset='"
+  push(ret, charset)
+  push(ret, "'>")
+  ret
+}
+fn css(href CString) String {
+  ret := s"<link rel='stylesheet' type='text/css' href='"
+  push(ret, href)
+  push(ret, "'>")
+  ret
+}
+fn static_css(filepath CString) String {
+  ret := s"<style>"
+  push(ret, read_file(filepath))
+  push(ret, "</style>")
+  ret
+}
+fn js(src CString) String {
+  ret := s"<script src='"
+  push(ret, src)
+  push(ret, "'></script>")
+  ret
+}
