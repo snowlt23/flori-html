@@ -97,32 +97,17 @@ define_html_tag(h2)
 define_html_tag(h3)
 
 fn title(t String) String {
-  ret := s"<title>"
-  push(ret, t)
-  push(ret, "</title>")
-  ret
+  s"<title>$#</title>" % [t]
 }
 fn meta(charset CString) String {
-  ret := s"<meta charset='"
-  push(ret, charset)
-  push(ret, "'>")
-  ret
+  s"<meta charset='$#'>" % [string(charset)]
 }
 fn css(href CString) String {
-  ret := s"<link rel='stylesheet' type='text/css' href='"
-  push(ret, href)
-  push(ret, "'>")
-  ret
+  s"<link rel='stylesheet' type='text/css' href='$#'>" % [string(href)]
 }
 fn static_css(filepath CString) String {
-  ret := s"<style>"
-  push(ret, read_file(filepath))
-  push(ret, "</style>")
-  ret
+  s"<style>$#</style>" % [read_file(filepath)]
 }
 fn js(src CString) String {
-  ret := s"<script src='"
-  push(ret, src)
-  push(ret, "'></script>")
-  ret
+  s"<script src='$#'" % [string(src)]
 }
