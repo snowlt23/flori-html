@@ -1,0 +1,22 @@
+
+import "core"
+import "html"
+default_region_settings()
+
+h := html {
+  head {
+    meta("utf-8")
+    title(s"heyguys")
+  }
+  body {
+    div(id="emotes") {
+      ul {
+        li {s"feelsbadman"}
+        li {s"lul"}
+        li {s"pogchamp"}
+        li {s"kappa"}
+      }
+    }
+  }
+}
+println(h)
